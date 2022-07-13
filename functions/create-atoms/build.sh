@@ -1,0 +1,1 @@
+docker build . --tag gcr.io/treactor/kpt-fn/create-atoms:unstable
