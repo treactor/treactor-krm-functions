@@ -1,1 +1,0 @@
-docker build . --tag gcr.io/treactor/kpt-fn/no-op:unstable

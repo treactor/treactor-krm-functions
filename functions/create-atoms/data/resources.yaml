@@ -1,5 +1,5 @@
-apiVersion: fn.kpt.dev/v1alpha1
-kind: treactor/CreateAtoms
+apiVersion: fn.treactor.io/v1alpha1
+kind: CreateAtoms
 metadata:
   name: my-config
 

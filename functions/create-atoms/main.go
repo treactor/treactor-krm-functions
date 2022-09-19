@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
 	"github.com/go-errors/errors"
+	"github.com/treactor/treactor-kpt-functions/common"
+	"github.com/treactor/treactor-kpt-functions/common/constants"
 	"github.com/treactor/treactor-kpt-functions/create-atoms/element"
 	"os"
 	gwv1beta1 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+	"strconv"
 	"strings"
 )
 
 const (
-	fnConfigGroup      = "fn.kpt.dev"
-	fnConfigVersion    = "v1alpha1"
-	fnConfigAPIVersion = fnConfigGroup + "/" + fnConfigVersion
 	legacyFnConfigKind = "SetAnnotationConfig"
 	fnConfigKind       = "SetAnnotations"
-	fnUri              = "kpt:fn:gen:gcr.io/treactor/kpt-fn/create-atoms"
+	fnUri              = constants.FnUriPrefix + "create-atoms"
 )
 
 func upsert(env []map[string]interface{}, envVar map[string]interface{}) []map[string]interface{} {
@@ -36,34 +36,56 @@ func upsert(env []map[string]interface{}, envVar map[string]interface{}) []map[s
 }
 
 type CreateAtomsFn struct {
-	items []*fn.KubeObject
+	config *CreateAtomsConfig
+	items  []*fn.KubeObject
 }
 
-func CreateFn() *CreateAtomsFn {
+func CreateFn(config *CreateAtomsConfig) *CreateAtomsFn {
 	function := CreateAtomsFn{
-		items: []*fn.KubeObject{},
+		items:  []*fn.KubeObject{},
+		config: config,
 	}
 	return &function
 }
 
-func (function *CreateAtomsFn) addServiceForElement(rl *fn.ResourceList, atom element.Element, config CreateAtomsConfig) error {
-	app := fmt.Sprintf("atom-%s", strings.ToLower(atom.Symbol))
+func (function *CreateAtomsFn) ensureServiceForElement(rl *fn.ResourceList, atom element.Element) error {
+	app := function.getAppName(atom)
 
-	service, err := fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/create-atoms
+	service, found := common.FindObject(rl, "", "v1", "Service", app)
+	if !found {
+		var err error
+		service, err = fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/create-atoms
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: atom
+  name: atom
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 30000
+  selector:
+    app: atom
 `))
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
+	service.SetAnnotation("config.kubernetes.io/managed-by", fnUri)
 	service.SetName(app)
-
+	service.SetLabel("app", app)
+	service.SetNestedField(app, "spec", "selector", "app")
 	function.items = append(function.items, service)
 	return nil
 }
 
-func (function *CreateAtomsFn) addRouteForElement(rl *fn.ResourceList, atom element.Element, config CreateAtomsConfig) error {
-	app := fmt.Sprintf("atom-%s", strings.ToLower(atom.Symbol))
+func (function *CreateAtomsFn) ensureRouteForElement(rl *fn.ResourceList, atom element.Element) error {
+	app := function.getAppName(atom)
 
-	route, found := findObject(rl, "gateway.networking.k8s.io/v1alpha2", "HTTPRoute", app)
+	route, found := common.FindObject(rl, "gateway.networking.k8s.io", "v1alpha2", "HTTPRoute", app)
 	if !found {
 		var err error
 		route, err = fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/create-atoms
@@ -71,11 +93,9 @@ apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute
 metadata:
   name: atom
-  namespace: default
 spec:
   parentRefs:
     - name: gateway
-      namespace: default
   hostnames: ["treactor.example.com"]
 `))
 		if err != nil {
@@ -87,7 +107,7 @@ spec:
 	route.SetAnnotation("config.kubernetes.io/managed-by", fnUri)
 
 	path := fmt.Sprintf("/treact/nodes/%d/info", atom.Number)
-	port := gwv1beta1.PortNumber(3000)
+	port := gwv1beta1.PortNumber(80)
 
 	var rules []gwv1beta1.HTTPRouteRule
 	rules = append(rules, gwv1beta1.HTTPRouteRule{
@@ -108,34 +128,47 @@ spec:
 		},
 		},
 	})
+	if atom.Number == 501 {
+		pathInfo := "/treact/info"
+		rules[0].Matches = append(rules[0].Matches, gwv1beta1.HTTPRouteMatch{
+			Path: &gwv1beta1.HTTPPathMatch{
+				Type:  nil,
+				Value: &pathInfo,
+			},
+		})
+	}
 	route.SetNestedField(rules, "spec", "rules")
 
 	function.items = append(function.items, route)
 	return nil
 }
 
-func findObject(rl *fn.ResourceList, version, kind, name string) (*fn.KubeObject, bool) {
-	for _, kubeObject := range rl.Items {
-
-		if kubeObject.IsGVK(version, kind) && kubeObject.GetName() == name {
-			return kubeObject, true
-		}
+func (function *CreateAtomsFn) getAppName(element element.Element) string {
+	if element.Number < 200 {
+		return fmt.Sprintf("atom-%s", strings.ToLower(element.Symbol))
+	} else if element.Number >= 200 && element.Number < 299 {
+		return fmt.Sprintf("bond-%d", element.Number-200)
+	} else if element.Number == 299 {
+		return "bond-n"
+	} else if element.Number == 500 {
+		return "treactor-ui"
+	} else if element.Number == 501 {
+		return "treactor-api"
 	}
-	return nil, false
+	return "unknown"
 }
 
-func (function *CreateAtomsFn) addDeploymentForElement(rl *fn.ResourceList, atom element.Element, config CreateAtomsConfig) error {
-	app := fmt.Sprintf("atom-%s", strings.ToLower(atom.Symbol))
+func (function *CreateAtomsFn) ensureDeploymentForElement(rl *fn.ResourceList, atom element.Element) error {
+	app := function.getAppName(atom)
 
-	deployment, found := findObject(rl, "apps/v1", "Deployment", app)
+	deployment, found := common.FindObject(rl, "app", "v1", "Deployment", app)
 	if !found {
 		var err error
-		deployment, err = fn.ParseKubeObject([]byte(`# Generate by dfdf gcr.io/treactor/kpt-fn/create-atoms
+		deployment, err = fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/create-atoms
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: atom
-  namespace: default
 spec:
   template:
     spec:
@@ -144,7 +177,7 @@ spec:
           image: treactor/treactor
           env:
             - name: PORT
-              value: '3330'
+              value: '30000'
             - name: SERVICE_VERSION
               value: '0.0.0'
             - name: TREACTOR_MODE
@@ -156,7 +189,7 @@ spec:
             - name: TREACTOR_RANDOM
               value: 'nothing_secret'
           ports:
-            - containerPort: 3330
+            - containerPort: 30000
               name: http
               protocol: TCP
 `))
@@ -172,6 +205,8 @@ spec:
 	containers, _, err := deployment.NestedSlice("spec", "template", "spec", "containers")
 	for _, container := range containers {
 		if container.GetString("name") == "atom" {
+
+			container.SetNestedField(function.config.ImageForAtom(atom), "image")
 			var env []map[string]interface{}
 			_, err = container.Get(&env, "env")
 			if err != nil {
@@ -182,16 +217,20 @@ spec:
 				"value": app,
 			})
 			env = upsert(env, map[string]interface{}{
+				"name":  "SERVICE_VERSION",
+				"value": function.config.ImageTagForAtom(atom),
+			})
+			env = upsert(env, map[string]interface{}{
 				"name":  "TREACTOR_NUMBER",
-				"value": atom.Number,
+				"value": strconv.Itoa(int(atom.Number)),
 			})
 			env = upsert(env, map[string]interface{}{
 				"name":  "TREACTOR_MAX_NUMBER",
-				"value": config.MaxNumber,
+				"value": strconv.Itoa(int(function.config.MaxNumber)),
 			})
 			env = upsert(env, map[string]interface{}{
 				"name":  "TREACTOR_MAX_BOND",
-				"value": config.MaxBond,
+				"value": strconv.Itoa(int(function.config.MaxBond)),
 			})
 			env = upsert(env, map[string]interface{}{
 				"name":  "TREACTOR_COMPONENT",
@@ -224,37 +263,49 @@ func Run(rl *fn.ResourceList) (bool, error) {
 		return false, err
 	}
 	elements := element.ReadElements()
-	var function CreateAtomsFn
+	var function = CreateFn(&config)
 	for _, element := range elements.Elements {
 		if element.Number <= config.MaxNumber {
-			err := function.addDeploymentForElement(rl, element, config)
+			err := function.ensureDeploymentForElement(rl, element)
 			if err != nil {
 				return false, err
 			}
-			err = function.addRouteForElement(rl, element, config)
+			err = function.ensureServiceForElement(rl, element)
+			if err != nil {
+				return false, err
+			}
+			err = function.ensureRouteForElement(rl, element)
 			if err != nil {
 				return false, err
 			}
 		}
 		if element.Number >= 200 && element.Number < 300 {
 			if element.Number <= 200+config.MaxBond || element.Number == 299 {
-				err := function.addDeploymentForElement(rl, element, config)
+				err := function.ensureDeploymentForElement(rl, element)
 				if err != nil {
 					return false, err
 				}
-				err = function.addRouteForElement(rl, element, config)
+				err = function.ensureServiceForElement(rl, element)
+				if err != nil {
+					return false, err
+				}
+				err = function.ensureRouteForElement(rl, element)
 				if err != nil {
 					return false, err
 				}
 			}
 		}
 		if element.Number >= 500 && element.Number < 600 {
-			err := function.addDeploymentForElement(rl, element, config)
+			err := function.ensureDeploymentForElement(rl, element)
+			if err != nil {
+				return false, err
+			}
+			err = function.ensureServiceForElement(rl, element)
 			if err != nil {
 				return false, err
 			}
 			if element.Number != 500 {
-				err = function.addRouteForElement(rl, element, config)
+				err = function.ensureRouteForElement(rl, element)
 				if err != nil {
 					return false, err
 				}

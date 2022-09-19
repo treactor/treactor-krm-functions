@@ -1,17 +1,19 @@
-ARG BUILDER_IMAGE=golang:1.17-alpine3.15
-ARG BASE_IMAGE=alpine:3.15
-
+ARG BUILDER_IMAGE=golang:1.19.1-alpine3.16
+ARG BASE_IMAGE=alpine:3.16
 
 FROM --platform=$BUILDPLATFORM $BUILDER_IMAGE AS build
 ENV CGO_ENABLED=0
 WORKDIR /go/src/
 
-COPY go.mod go.sum ./
-RUN go mod download
+RUN mkdir common && mkdir ensure-sa
+
+COPY common/go.mod common/
+COPY ensure-sa/go.mod ensure-sa/go.sum ensure-sa/
+RUN cd ensure-sa && go mod download && cd ..
 
 COPY . .
 ARG TARGETOS TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/function ./
+RUN cd ensure-sa/ && GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/function
 
 #############################################
 

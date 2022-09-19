@@ -8,13 +8,6 @@ import (
 	"os"
 )
 
-const (
-	fnConfigGroup      = "fn.kpt.dev"
-	fnConfigVersion    = "v1alpha1"
-	fnConfigAPIVersion = fnConfigGroup + "/" + fnConfigVersion
-	fnConfigKind       = "EnsureSA"
-)
-
 func upsert(env []map[string]interface{}, envVar map[string]interface{}) []map[string]interface{} {
 	name, found := envVar["name"]
 	if !found {
@@ -88,7 +81,7 @@ func EnsureTelemetryEnv(container *fn.SubObject) error {
 
 func Run(rl *fn.ResourceList) (bool, error) {
 	for _, kubeObject := range rl.Items {
-		if kubeObject.IsGVK("apps/v1", "Deployment") {
+		if kubeObject.IsGVK("apps", "v1", "Deployment") {
 			//name := kubeObject.GetName()
 
 			slice, _, err := kubeObject.NestedSlice("spec", "template", "spec", "containers")

@@ -1,0 +1,44 @@
+apiVersion: config.kubernetes.io/v1
+kind: ResourceList
+functionConfig:
+  apiVersion: fn.treactor.io/v1alpha1
+  kind: GatewayAPI
+  metadata: # kpt-merge: /gateway-api
+    name: gateway-api
+    annotations:
+      config.kubernetes.io/local-config: "true"
+  output: istio
+items:
+  - apiVersion: gateway.networking.k8s.io/v1alpha2
+    kind: HTTPRoute
+    metadata: # kpt-merge: /treactor-ui
+      name: treactor-ui
+      annotations:
+        config.kubernetes.io/local-config: "true"
+    spec:
+      parentRefs:
+        - name: gateway
+      hostnames: ["treactor.ioto.pe"]
+      rules:
+        - matches:
+            - path:
+                type: Exact
+                value: /
+            - path:
+                type: Exact
+                value: /index.html
+            - path:
+                type: Exact
+                value: /robot.txt
+            - path:
+                type: PathPrefix
+                value: /static
+            - path:
+                type: PathPrefix
+                value: /treact/reactions
+            - path: # the UI node is provided
+                type: PathPrefix
+                value: /treact/nodes/500/info
+          backendRefs:
+            - name: treactor-ui
+              port: 80

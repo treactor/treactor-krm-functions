@@ -7,27 +7,28 @@ import (
 	"testing"
 )
 
-func TestCreate(t *testing.T) {
-	resourceTestFile, err := os.ReadFile("data/main_test_create.yaml")
+func TestEnvoy(t *testing.T) {
+	resourceTestFile, err := os.ReadFile("data/main_test_envoy.yaml")
 	assert.NoError(t, err)
 	resourceList, err := fn.ParseResourceList(resourceTestFile)
 	run, err := Run(resourceList)
 	assert.NoError(t, err)
 	assert.True(t, run)
 	assert.NoError(t, fn.CheckResourceDuplication(resourceList))
-	assert.Equal(t, len(resourceList.Items), 9)
-	//yaml, err := resourceList.ToYAML()
-	//assert.NoError(t, err)
-	//println(string(yaml))
+	assert.Equal(t, 5, len(resourceList.Items))
+	assert.Equal(t, resourceList.Results[0].Message, "Added 1 backends")
+	assert.Equal(t, resourceList.Results[1].Message, "Added 6 routes")
 }
 
-func TestUpdate(t *testing.T) {
-	resourceTestFile, err := os.ReadFile("data/main_test_update.yaml")
+func TestIstio(t *testing.T) {
+	resourceTestFile, err := os.ReadFile("data/main_test_istio.yaml")
 	assert.NoError(t, err)
 	resourceList, err := fn.ParseResourceList(resourceTestFile)
 	run, err := Run(resourceList)
 	assert.NoError(t, err)
 	assert.True(t, run)
 	assert.NoError(t, fn.CheckResourceDuplication(resourceList))
-	assert.Equal(t, len(resourceList.Items), 9)
+	assert.Equal(t, 2, len(resourceList.Items))
+	assert.Equal(t, resourceList.Results[0].Message, "Added 1 backends")
+	assert.Equal(t, resourceList.Results[1].Message, "Added 6 routes")
 }

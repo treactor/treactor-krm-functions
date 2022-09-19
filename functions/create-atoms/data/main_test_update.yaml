@@ -1,0 +1,281 @@
+apiVersion: config.kubernetes.io/v1
+kind: ResourceList
+items:
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: bond-n
+      annotations:
+        internal.config.kubernetes.io/index: "1"
+        internal.config.kubernetes.io/path: "deployment_bond-n.yaml"
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/create-atoms
+    spec:
+      template:
+        spec:
+          containers:
+            - name: atom
+              image: gcr.io/treactor/treactor-go:latest
+              env:
+                - name: PORT
+                  value: "30000"
+                - name: SERVICE_VERSION
+                  value: latest
+                - name: TREACTOR_MODE
+                  value: cluster
+                - name: TREACTOR_TRACE_PROPAGATION
+                  value: w3c
+                - name: TREACTOR_TRACE_INTERNAL
+                  value: "1"
+                - name: TREACTOR_RANDOM
+                  value: nothing_secret
+                - name: SERVICE_NAME
+                  value: bond-n
+                - name: TREACTOR_NUMBER
+                  value: "299"
+                - name: TREACTOR_MAX_NUMBER
+                  value: "0"
+                - name: TREACTOR_MAX_BOND
+                  value: "0"
+                - name: TREACTOR_COMPONENT
+                  value: bn
+                - name: TREACTOR_MODULE
+                  value: bond
+              ports:
+                - containerPort: 30000
+                  name: http
+                  protocol: TCP
+        metadata:
+          labels:
+            app: bond-n
+      selector:
+        matchLabels:
+          app: bond-n
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: treactor-api
+      annotations:
+        internal.config.kubernetes.io/index: "2"
+        internal.config.kubernetes.io/path: "deployment_treactor-api.yaml"
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/create-atoms
+    spec:
+      template:
+        spec:
+          containers:
+            - name: atom
+              image: gcr.io/treactor/treactor-go:latest
+              env:
+                - name: PORT
+                  value: "30000"
+                - name: SERVICE_VERSION
+                  value: latest
+                - name: TREACTOR_MODE
+                  value: cluster
+                - name: TREACTOR_TRACE_PROPAGATION
+                  value: w3c
+                - name: TREACTOR_TRACE_INTERNAL
+                  value: "1"
+                - name: TREACTOR_RANDOM
+                  value: nothing_secret
+                - name: SERVICE_NAME
+                  value: treactor-api
+                - name: TREACTOR_NUMBER
+                  value: "501"
+                - name: TREACTOR_MAX_NUMBER
+                  value: "0"
+                - name: TREACTOR_MAX_BOND
+                  value: "0"
+                - name: TREACTOR_COMPONENT
+                  value: ai
+                - name: TREACTOR_MODULE
+                  value: treactor
+              ports:
+                - containerPort: 30000
+                  name: http
+                  protocol: TCP
+        metadata:
+          labels:
+            app: treactor-api
+      selector:
+        matchLabels:
+          app: treactor-api
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: treactor-ui
+      annotations:
+        internal.config.kubernetes.io/index: "3"
+        internal.config.kubernetes.io/path: "deployment_treactor-ui.yaml"
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/create-atoms
+    spec:
+      template:
+        spec:
+          containers:
+            - name: atom
+              image: gcr.io/treactor/treactor-node:latest
+              env:
+                - name: PORT
+                  value: "30000"
+                - name: SERVICE_VERSION
+                  value: latest
+                - name: TREACTOR_MODE
+                  value: cluster
+                - name: TREACTOR_TRACE_PROPAGATION
+                  value: w3c
+                - name: TREACTOR_TRACE_INTERNAL
+                  value: "1"
+                - name: TREACTOR_RANDOM
+                  value: nothing_secret
+                - name: SERVICE_NAME
+                  value: treactor-ui
+                - name: TREACTOR_NUMBER
+                  value: "500"
+                - name: TREACTOR_MAX_NUMBER
+                  value: "0"
+                - name: TREACTOR_MAX_BOND
+                  value: "0"
+                - name: TREACTOR_COMPONENT
+                  value: ui
+                - name: TREACTOR_MODULE
+                  value: treactor
+              ports:
+                - containerPort: 30000
+                  name: http
+                  protocol: TCP
+        metadata:
+          labels:
+            app: treactor-ui
+      selector:
+        matchLabels:
+          app: treactor-ui
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: gateway.networking.k8s.io/v1alpha2
+    kind: HTTPRoute
+    metadata:
+      name: bond-n
+      annotations:
+        internal.config.kubernetes.io/index: "4"
+        internal.config.kubernetes.io/path: "httproute_bond-n.yaml"
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/create-atoms
+    spec:
+      parentRefs:
+        - name: gateway
+      hostnames: ["treactor.example.com"]
+      rules:
+        - backendRefs:
+            - name: bond-n
+              port: 80
+          matches:
+            - path:
+                value: /treact/nodes/299/info
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: gateway.networking.k8s.io/v1alpha2
+    kind: HTTPRoute
+    metadata:
+      name: treactor-api
+      annotations:
+        internal.config.kubernetes.io/index: "5"
+        internal.config.kubernetes.io/path: "httproute_treactor-api.yaml"
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/create-atoms
+    spec:
+      parentRefs:
+        - name: gateway
+      hostnames: ["treactor.example.com"]
+      rules:
+        - backendRefs:
+            - name: treactor-api
+              port: 80
+          matches:
+            - path:
+                value: /treact/nodes/501/info
+            - path:
+                value: /treact/info
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        internal.config.kubernetes.io/index: "6"
+        internal.config.kubernetes.io/path: "service_bond-n.yaml"
+      labels:
+        app: bond-n
+      name: bond-n
+    spec:
+      ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: 30000
+      selector:
+        app: bond-n
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: foobar
+      labels:
+        app: foobar
+      annotations:
+        internal.config.kubernetes.io/index: "0"
+        internal.config.kubernetes.io/path: "foobar.yaml"
+    spec: # Example comment
+      type: LoadBalancer
+      selector:
+        app: foobar
+      ports:
+        - protocol: TCP
+          port: 80
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: treactor-api
+      name: treactor-api
+    spec:
+      ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: 30000
+      selector:
+        app: treactor-api
+  - # Generate by gcr.io/treactor/kpt-fn/create-atoms
+    apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        internal.config.kubernetes.io/index: "7"
+        internal.config.kubernetes.io/path: "service_treactor-ui.yaml"
+      labels:
+        app: treactor-ui
+      name: treactor-ui
+    spec:
+      ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: 30000
+      selector:
+        app: treactor-ui
+functionConfig:
+  apiVersion: fn.treactor.io/v1alpha1
+  kind: CreateAtoms
+  metadata:
+    name: create-atoms
+    annotations:
+      config.kubernetes.io/local-config: "true"
+  maxBond: 0
+  maxNumber: 0
+  frameworks:
+    - name: "treactorGo"
+      image: "gcr.io/treactor/treactor-go"
+      imageTag: "latest"
+    - name: "treactorJava"
+      image: "gcr.io/treactor/treactor-java"
+      imageTag: "latest"
+    - name: "treactorNode"
+      image: "gcr.io/treactor/treactor-node"
+      imageTag: "latest"

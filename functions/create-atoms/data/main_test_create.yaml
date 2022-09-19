@@ -1,0 +1,38 @@
+apiVersion: config.kubernetes.io/v1
+kind: ResourceList
+functionConfig:
+  apiVersion: fn.treactor.io/v1alpha1
+  kind: CreateAtoms
+  metadata:
+    name: create-atoms
+    annotations:
+      config.kubernetes.io/local-config: "true"
+  maxBond: 0
+  maxNumber: 0
+  frameworks:
+    - name: "treactorGo"
+      image: "gcr.io/treactor/treactor-go"
+      imageTag: "latest"
+    - name: "treactorJava"
+      image: "gcr.io/treactor/treactor-java"
+      imageTag: "latest"
+    - name: "treactorNode"
+      image: "gcr.io/treactor/treactor-node"
+      imageTag: "latest"
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: foobar
+      labels:
+        app: foobar
+      annotations:
+        internal.config.kubernetes.io/index: "0"
+        internal.config.kubernetes.io/path: "foobar.yaml"
+    spec: # Example comment
+      type: LoadBalancer
+      selector:
+        app: foobar
+      ports:
+        - protocol: TCP
+          port: 80

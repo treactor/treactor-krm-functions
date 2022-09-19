@@ -1,14 +1,15 @@
-module github.com/treactor/treactor-kpt-functions/create-atoms
+module github.com/treactor/treactor-kpt-functions/common
 
-go 1.18
+go 1.19
 
-require github.com/GoogleContainerTools/kpt-functions-sdk/go/fn v0.0.0-20220514002641-d396a3ec1a99
+require github.com/GoogleContainerTools/kpt-functions-sdk/go/fn v0.0.0-20220812180116-970f3e4cbc5a
 
 require (
+	github.com/GoogleContainerTools/kpt-functions-sdk/go/api v0.0.0-20220720212527-133180134b93 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-errors/errors v1.4.2 // indirect
+	github.com/go-errors/errors v1.0.1 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect

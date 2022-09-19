@@ -1,1 +1,0 @@
-docker build . --tag gcr.io/treactor/kpt-fn/ensure-sa:unstable

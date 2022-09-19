@@ -2,8 +2,8 @@ package element
 
 import (
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -30,9 +30,9 @@ type Elements struct {
 }
 
 func ReadElements() Elements {
-	content, err := ioutil.ReadFile("/etc/elements.yaml")
+	content, err := os.ReadFile("/etc/elements.yaml")
 	if err != nil {
-		content, err = ioutil.ReadFile("elements.yaml")
+		content, err = os.ReadFile("elements.yaml")
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
 	"testing"
 )
@@ -27,5 +26,4 @@ spec:
 	slice, _, _ := kubeObject.NestedSlice("spec", "template", "spec", "containers")
 
 	EnsureTelemetryEnv(slice[0])
-	fmt.Println(kubeObject)
 }

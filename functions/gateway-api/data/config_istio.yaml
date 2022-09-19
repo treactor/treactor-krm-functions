@@ -1,0 +1,8 @@
+apiVersion: fn.treactor.io/v1alpha1
+kind: GatewayAPI
+metadata:
+  name: gateway-api
+  annotations:
+    config.kubernetes.io/local-config: "true"
+noop:
+

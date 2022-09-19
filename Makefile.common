@@ -1,0 +1,14 @@
+GOCMD?= go
+
+.PHONY: tidy
+tidy:
+	rm -fr go.sum
+	$(GOCMD) mod tidy -compat=1.19
+
+.PHONY: tidy
+unstable:
+	docker build .. --file Dockerfile --tag "gcr.io/treactor/kpt-fn/$$(basename $$(pwd)):unstable"
+
+.PHONY: test
+test:
+	go test -v

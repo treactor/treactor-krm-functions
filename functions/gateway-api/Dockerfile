@@ -5,19 +5,18 @@ FROM --platform=$BUILDPLATFORM $BUILDER_IMAGE AS build
 ENV CGO_ENABLED=0
 WORKDIR /go/src/
 
-RUN mkdir common && mkdir create-atoms
+RUN mkdir common && mkdir gateway-api
 
 COPY common/go.mod common/
-COPY create-atoms/go.mod create-atoms/go.sum create-atoms/
-RUN cd create-atoms && go mod download && cd ..
+COPY gateway-api/go.mod gateway-api/go.sum gateway-api/
+RUN cd gateway-api && go mod download && cd ..
 
 COPY . .
 ARG TARGETOS TARGETARCH
-RUN cd create-atoms/ && GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/function
+RUN cd gateway-api/ && GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/function
 
 #############################################
 
 FROM $BASE_IMAGE
 COPY --from=build /usr/local/bin/function /usr/local/bin/function
-COPY create-atoms/elements.yaml /etc/elements.yaml
 ENTRYPOINT ["function"]
