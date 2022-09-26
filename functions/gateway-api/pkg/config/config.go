@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
@@ -18,7 +18,7 @@ type IngressConfig struct {
 }
 
 type EnvoyConfig struct {
-	EnableIngress string `yaml:"enableIngress,omitempty"`
+	EnableIngress bool `yaml:"enableIngress,omitempty"`
 }
 
 func (config *GatewayApiConfig) Config(functionConfig *fn.KubeObject) (error, bool) {

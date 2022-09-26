@@ -3,6 +3,7 @@ package envoy
 import (
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
 	"github.com/treactor/treactor-kpt-functions/common"
+	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/config"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/fnc"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/routes"
 )
@@ -11,7 +12,7 @@ type resources struct {
 	items []*fn.KubeObject
 }
 
-func Create(rl *fn.ResourceList, routes routes.Routes) ([]*fn.KubeObject, error) {
+func Create(rl *fn.ResourceList, c *config.EnvoyConfig, routes routes.Routes) ([]*fn.KubeObject, error) {
 	r := resources{items: []*fn.KubeObject{}}
 
 	err := r.ensureConfigMapForEnvoy(rl, routes)
@@ -26,7 +27,9 @@ func Create(rl *fn.ResourceList, routes routes.Routes) ([]*fn.KubeObject, error)
 	if err != nil {
 		return nil, err
 	}
-	err = r.ensureIngressForEnvoy(rl)
+	if c != nil && c.EnableIngress {
+		err = r.ensureIngressForEnvoy(rl)
+	}
 	if err != nil {
 		return nil, err
 	}

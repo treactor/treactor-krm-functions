@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
 	"github.com/treactor/treactor-kpt-functions/common/constants"
+	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/config"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/envoy"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/fnc"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/routes"
@@ -17,8 +18,8 @@ import (
 //metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 func Run(rl *fn.ResourceList) (bool, error) {
-	var config GatewayApiConfig
-	err, _ := config.Config(rl.FunctionConfig)
+	var cfg config.GatewayApiConfig
+	err, _ := cfg.Config(rl.FunctionConfig)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -35,14 +36,14 @@ func Run(rl *fn.ResourceList) (bool, error) {
 	}
 
 	var items []*fn.KubeObject
-	if config.Output == "istio" {
+	if cfg.Output == "istio" {
 		fnResources, err := virtualservice.Create(rl, r)
 		if err != nil {
 			return false, err
 		}
 		items = append(items, fnResources...)
-	} else if config.Output == "envoy" {
-		fnResources, err := envoy.Create(rl, r)
+	} else if cfg.Output == "envoy" {
+		fnResources, err := envoy.Create(rl, cfg.Envoy, r)
 		if err != nil {
 			return false, err
 		}
@@ -51,7 +52,7 @@ func Run(rl *fn.ResourceList) (bool, error) {
 
 	// Collect the unmanaged resources
 	for _, item := range rl.Items {
-		if item.GetAnnotation("config.kubernetes.io/managed-by") != fnc.FnUri {
+		if item.GetAnnotation("cfg.kubernetes.io/managed-by") != fnc.FnUri {
 			items = append(items, item)
 		}
 	}
