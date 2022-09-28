@@ -58,3 +58,16 @@ func TestIstio(t *testing.T) {
 	assert.Equal(t, resourceList.Results[0].Message, "Added 1 backends")
 	assert.Equal(t, resourceList.Results[1].Message, "Added 6 routes")
 }
+
+func TestIngress(t *testing.T) {
+	resourceTestFile, err := os.ReadFile("data/main_test_ingress.yaml")
+	assert.NoError(t, err)
+	resourceList, err := fn.ParseResourceList(resourceTestFile)
+	run, err := Run(resourceList)
+	assert.NoError(t, err)
+	assert.True(t, run)
+	assert.NoError(t, fn.CheckResourceDuplication(resourceList))
+	assert.Equal(t, 2, len(resourceList.Items))
+	assert.Equal(t, resourceList.Results[0].Message, "Added 1 backends")
+	assert.Equal(t, resourceList.Results[1].Message, "Added 6 routes")
+}

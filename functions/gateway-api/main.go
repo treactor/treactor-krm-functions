@@ -9,6 +9,7 @@ import (
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/config"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/envoy"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/fnc"
+	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/ingress"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/routes"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/virtualservice"
 	"os"
@@ -44,6 +45,12 @@ func Run(rl *fn.ResourceList) (bool, error) {
 		items = append(items, fnResources...)
 	} else if cfg.Output == "envoy" {
 		fnResources, err := envoy.Create(rl, cfg.Envoy, r)
+		if err != nil {
+			return false, err
+		}
+		items = append(items, fnResources...)
+	} else if cfg.Output == "ingress" {
+		fnResources, err := ingress.Create(rl, r)
 		if err != nil {
 			return false, err
 		}
