@@ -31,6 +31,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: kubeObject
+  namespace: generated
 spec:
   gateways:
     - istio-system/ingressgateway

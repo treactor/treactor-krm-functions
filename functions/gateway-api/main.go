@@ -52,7 +52,7 @@ func Run(rl *fn.ResourceList) (bool, error) {
 
 	// Collect the unmanaged resources
 	for _, item := range rl.Items {
-		if item.GetAnnotation("cfg.kubernetes.io/managed-by") != fnc.FnUri {
+		if item.GetAnnotation("config.kubernetes.io/managed-by") != fnc.FnUri {
 			items = append(items, item)
 		}
 	}

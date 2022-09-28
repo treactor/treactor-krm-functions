@@ -61,6 +61,7 @@ metadata:
   labels:
     app: atom
   name: atom
+  namespace: generated
 spec:
   ports:
     - name: http
@@ -93,6 +94,7 @@ apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: HTTPRoute
 metadata:
   name: atom
+  namespace: generated
 spec:
   parentRefs:
     - name: gateway
@@ -169,6 +171,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: atom
+  namespace: generated
 spec:
   template:
     spec:

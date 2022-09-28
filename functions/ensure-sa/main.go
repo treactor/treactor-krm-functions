@@ -62,7 +62,7 @@ func (function *EnsureSaFn) collectUnmanaged(rl *fn.ResourceList) {
 func Run(rl *fn.ResourceList) (bool, error) {
 	function := CreateFn()
 	for _, kubeObject := range rl.Items {
-		if kubeObject.IsGVK("", "apps/v1", "Deployment") {
+		if kubeObject.IsGVK("apps", "v1", "Deployment") {
 			name := kubeObject.GetName()
 			namespace := kubeObject.GetNamespace()
 			kubeObject.SetNestedField(name, "spec", "template", "spec", "serviceAccountName")

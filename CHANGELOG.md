@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.7 - 2022-09-27
 
 ## 🛑 Breaking changes 🛑
 
@@ -10,9 +10,14 @@
 
 - Added experimental ArgoCD plugin
 
+## 🧰 Bug fixes 🧰
+
+- `ensure-sa` gets works again 
+
 ## 💡 Enhancements 💡
 
-- Envoy output can enable/disable Ingress resource 
+- Envoy output can enable/disable Ingress resource
+- Add `generated` namespace to the resources
 
 ## v0.6 - 2022-09-24
 

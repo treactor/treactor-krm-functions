@@ -1,0 +1,107 @@
+apiVersion: config.kubernetes.io/v1
+kind: ResourceList
+functionConfig:
+  apiVersion: fn.treactor.io/v1alpha1
+  kind: GatewayAPI
+  metadata: # kpt-merge: /gateway-api
+    name: gateway-api
+    annotations:
+      config.kubernetes.io/local-config: "true"
+  output: envoy
+items:
+  - apiVersion: gateway.networking.k8s.io/v1alpha2
+    kind: HTTPRoute
+    metadata: # kpt-merge: /treactor-ui
+      name: treactor-ui
+      annotations:
+        config.kubernetes.io/local-config: "true"
+    spec:
+      parentRefs:
+        - name: gateway
+      hostnames: ["treactor.ioto.pe"]
+      rules:
+        - matches:
+            - path:
+                type: Exact
+                value: /
+            - path:
+                type: Exact
+                value: /index.html
+            - path:
+                type: Exact
+                value: /robot.txt
+            - path:
+                type: PathPrefix
+                value: /static
+            - path:
+                type: PathPrefix
+                value: /treact/reactions
+            - path: # the UI node is provided
+                type: PathPrefix
+                value: /treact/nodes/500/info
+          backendRefs:
+            - name: treactor-ui
+              port: 80
+  - # Generate by gcr.io/treactor/kpt-fn/gateway-api
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: envoy
+      annotations:
+        config.kubernetes.io/managed-by: fn:gen:gcr.io/treactor/kpt-fn/gateway-api
+      namespace: treactor
+    spec:
+      template:
+        spec:
+          containers:
+            - name: envoy
+              image: envoyproxy/envoy-distroless:v1.23-latest
+              env:
+                - name: PORT
+                  value: "30000"
+                - name: K8S_POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: K8S_NAMESPACE_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: K8S_POD_UID
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.uid
+                - name: HOST_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
+                - name: OTEL_EXPORTER
+                  value: otlp
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  value: http://$(HOST_IP):4317
+                - name: OTEL_EXPORTER_OTLP_PROTOCOL
+                  value: grpc
+              ports:
+                - name: http
+                  containerPort: 30000
+                  protocol: TCP
+                - name: admin
+                  containerPort: 9901
+                  protocol: TCP
+              readinessProbe:
+                httpGet:
+                  path: /ready
+                  port: admin
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/envoy
+          volumes:
+            - name: config-volume
+              configMap:
+                name: envoy
+        metadata:
+          labels:
+            app: envoy
+      selector:
+        matchLabels:
+          app: envoy

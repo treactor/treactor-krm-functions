@@ -48,6 +48,7 @@ metadata:
   labels:
     app: envoy
   name: envoy
+  namespace: generated
 spec:
   ports:
     - name: http
@@ -75,6 +76,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: envoy
+  namespace: generated
 spec:
   template:
     spec:
@@ -127,6 +129,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: treactor
+  namespace: generated
 spec:
   rules:
     - http:
@@ -157,6 +160,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: envoy
+  namespace: generated
 data:
   envoy.yaml: ""
 `))
