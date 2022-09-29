@@ -89,10 +89,14 @@ Adds telemetry environment variables.
 
 ### gateway-api
 
-understands the gateway-api resources
+This function understands the [Gateway API](https://gateway-api.sigs.k8s.io/) resources. The function demonstrates
+the possibility todo complex resource processing client side. The Gateway API is a good example, as the resources 
+are not part of a vanilla Kubernetes cluster. This makes it possible (depending on the mode) to convert and create
+additional resources that have the same behaviour as the routes declared in the Gateway API resources. The function
+has the following modes:
 
 * **noop** : Disable any processing 
-* **envoy** : Create an Istio proxy
+* **envoy** : Create an Envoy proxy configuration and deployment
 * **istio** : Create Istio virtual services
 * **gateway-api** : Keep/Restore the GatewayApi resources
 
@@ -108,12 +112,30 @@ output: envoy
 
 #### Configuring Envoy mode
 
+```yaml
+output: envoy
+envoy:
+  enableIngress: true
+```
 
 #### Configuring Istio mode
+
+```yaml
+output: istio
+```
 
 
 #### Configure Ingress mode
 
+```yaml
+output: ingress
+```
+
+### Configure No Operation mode
+
+```yaml
+output: noop
+```
 
 ## History
 
