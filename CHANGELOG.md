@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.8 - 2022-09-29
+
 ## 💡 Enhancements 💡
 
 - Add support for Ingress in `gateway-api`
