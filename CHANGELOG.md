@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9 - 2022-09-29
+
+## 💡 Enhancements 💡
+
+- Add readyness probes for all frameworks
+- Add appProtocol for services
+
 ## v0.8 - 2022-09-29
 
 ## 💡 Enhancements 💡

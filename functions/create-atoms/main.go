@@ -68,6 +68,7 @@ spec:
       port: 80
       protocol: TCP
       targetPort: 30000
+	  appProtocol: http
   selector:
     app: atom
 `))
@@ -195,6 +196,10 @@ spec:
             - containerPort: 30000
               name: http
               protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
 `))
 		if err != nil {
 			return err
