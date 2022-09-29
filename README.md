@@ -91,9 +91,10 @@ Adds telemetry environment variables.
 
 understands the gateway-api resources
 
-* noop
-* envoy
-* istio
+* **noop** : Disable any processing 
+* **envoy** : Create an Istio proxy
+* **istio** : Create Istio virtual services
+* **gateway-api** : Keep/Restore the GatewayApi resources
 
 ```yaml
 apiVersion: fn.treactor.io/v1alpha1
@@ -109,6 +110,9 @@ output: envoy
 
 
 #### Configuring Istio mode
+
+
+#### Configure Ingress mode
 
 
 ## History

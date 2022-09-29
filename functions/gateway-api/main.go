@@ -24,6 +24,9 @@ func Run(rl *fn.ResourceList) (bool, error) {
 	if err != nil {
 		os.Exit(1)
 	}
+	if cfg.Output == "noop" {
+		return true, nil
+	}
 
 	var r = routes.New()
 
