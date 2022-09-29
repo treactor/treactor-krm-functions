@@ -55,7 +55,7 @@ spec:
       port: 30000
       protocol: TCP
       targetPort: 30000
-	  appProtocol: http
+      appProtocol: http
   selector:
     app: envoy
 `))
