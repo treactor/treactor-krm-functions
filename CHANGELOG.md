@@ -3,6 +3,7 @@
 ## 💡 Enhancements 💡
 
 - Add support for Ingress in `gateway-api`
+- Add support for restoring GatewayApi resources in  `gateway-api`
 
 ## v0.7 - 2022-09-27
 

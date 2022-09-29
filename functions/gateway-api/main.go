@@ -30,9 +30,19 @@ func Run(rl *fn.ResourceList) (bool, error) {
 	for _, kubeObject := range rl.Items {
 		if kubeObject.IsGVK("gateway.networking.k8s.io", "v1alpha2", "HTTPRoute") {
 			r.AddRoutes(kubeObject)
-			kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
+			if cfg.Output != "gateway-api" {
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
+			} else {
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "")
+				_ = kubeObject.RemoveAnnotationsIfEmpty()
+			}
 		} else if kubeObject.IsGVK("gateway.networking.k8s.io", "v1alpha2", "Gateway") {
-			kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
+			if cfg.Output != "gateway-api" {
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
+			} else {
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "")
+				_ = kubeObject.RemoveAnnotationsIfEmpty()
+			}
 		}
 	}
 
@@ -56,7 +66,6 @@ func Run(rl *fn.ResourceList) (bool, error) {
 		}
 		items = append(items, fnResources...)
 	}
-
 	// Collect the unmanaged resources
 	for _, item := range rl.Items {
 		if item.GetAnnotation("config.kubernetes.io/managed-by") != fnc.FnUri {
