@@ -36,15 +36,13 @@ func Run(rl *fn.ResourceList) (bool, error) {
 			if cfg.Output != "gateway-api" {
 				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
 			} else {
-				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "")
-				_ = kubeObject.RemoveAnnotationsIfEmpty()
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "false")
 			}
 		} else if kubeObject.IsGVK("gateway.networking.k8s.io", "v1alpha2", "Gateway") {
 			if cfg.Output != "gateway-api" {
 				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
 			} else {
-				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "")
-				_ = kubeObject.RemoveAnnotationsIfEmpty()
+				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "false")
 			}
 		}
 	}
