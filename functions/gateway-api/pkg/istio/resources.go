@@ -1,4 +1,4 @@
-package virtualservice
+package istio
 
 import (
 	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
@@ -18,25 +18,29 @@ func Create(rl *fn.ResourceList, routes routes.Routes) ([]*fn.KubeObject, error)
 	if err != nil {
 		return nil, err
 	}
+	err = r.ensureIstioGateway(rl)
+	if err != nil {
+		return nil, err
+	}
 	return r.items, nil
 }
 
 func (r *resources) ensureVirtualService(rl *fn.ResourceList, routes routes.Routes) error {
 	name := "treactor"
-	kubeObject, found := common.FindObject(rl, "networking.istio.io", "v1alpha3", "VirtualService", name)
+	kubeObject, found := common.FindObject(rl, "networking.istio.io", "v1beta1", "VirtualService", name)
 	if !found {
 		var err error
 		kubeObject, err = fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/gateway-api
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: kubeObject
+  name: treactor
   namespace: generated
 spec:
   gateways:
-    - istio-system/ingressgateway
+    - treactor
   hosts:
-    - treactor.example.com
+    - "*"
   http: []
 `))
 		if err != nil {
@@ -46,8 +50,9 @@ spec:
 
 	var httpRoutes []*istiov1beta1.HTTPRoute
 	for _, route := range routes.GetRoutes() {
-		httpRoutes = append(httpRoutes, &istiov1beta1.HTTPRoute{
-			Match: []*istiov1beta1.HTTPMatchRequest{
+		var match []*istiov1beta1.HTTPMatchRequest
+		if route.Exact {
+			match = []*istiov1beta1.HTTPMatchRequest{
 				{
 					Uri: &istiov1beta1.StringMatch{
 						MatchType: &istiov1beta1.StringMatch_Exact{
@@ -55,7 +60,20 @@ spec:
 						},
 					},
 				},
-			},
+			}
+		} else {
+			match = []*istiov1beta1.HTTPMatchRequest{
+				{
+					Uri: &istiov1beta1.StringMatch{
+						MatchType: &istiov1beta1.StringMatch_Prefix{
+							Prefix: route.Path,
+						},
+					},
+				},
+			}
+		}
+		httpRoutes = append(httpRoutes, &istiov1beta1.HTTPRoute{
+			Match: match,
 			Route: []*istiov1beta1.HTTPRouteDestination{{
 				Destination: &istiov1beta1.Destination{
 					Host: route.Host,
@@ -63,6 +81,7 @@ spec:
 				},
 			}},
 		})
+		kubeObject.SetName(name)
 		kubeObject.SetAnnotation("config.kubernetes.io/managed-by", fnc.FnUri)
 	}
 
@@ -72,4 +91,36 @@ spec:
 	}
 	r.items = append(r.items, kubeObject)
 	return err
+}
+
+func (r *resources) ensureIstioGateway(rl *fn.ResourceList) error {
+	name := "treactor"
+	kubeObject, found := common.FindObject(rl, "networking.istio.io", "v1beta1", "Gateway", name)
+	if !found {
+		var err error
+		kubeObject, err = fn.ParseKubeObject([]byte(`# Generate by gcr.io/treactor/kpt-fn/gateway-api
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: treactor
+  namespace: generated
+spec:
+  selector:
+    app: istio-ingress
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+`))
+		if err != nil {
+			return err
+		}
+		kubeObject.SetName(name)
+		kubeObject.SetAnnotation("config.kubernetes.io/managed-by", fnc.FnUri)
+	}
+	r.items = append(r.items, kubeObject)
+	return nil
 }

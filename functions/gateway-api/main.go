@@ -10,8 +10,8 @@ import (
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/envoy"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/fnc"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/ingress"
+	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/istio"
 	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/routes"
-	"github.com/treactor/treactor-kpt-functions/gateway-api/pkg/virtualservice"
 	"os"
 )
 
@@ -49,7 +49,7 @@ func Run(rl *fn.ResourceList) (bool, error) {
 
 	var items []*fn.KubeObject
 	if cfg.Output == "istio" {
-		fnResources, err := virtualservice.Create(rl, r)
+		fnResources, err := istio.Create(rl, r)
 		if err != nil {
 			return false, err
 		}
