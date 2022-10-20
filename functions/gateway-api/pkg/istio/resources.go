@@ -39,8 +39,7 @@ metadata:
 spec:
   gateways:
     - treactor
-  hosts:
-    - "*"
+  hosts: []
   http: []
 `))
 		if err != nil {
@@ -89,6 +88,10 @@ spec:
 	if err != nil {
 		return err
 	}
+	err = kubeObject.SetNestedField(routes.GetHosts(), "spec", "hosts")
+	if err != nil {
+		return err
+	}
 	r.items = append(r.items, kubeObject)
 	return err
 }
@@ -107,7 +110,7 @@ metadata:
 spec:
   selector:
     app: istio-ingress
-  servers:
+  servers: []
 `))
 		if err != nil {
 			return err

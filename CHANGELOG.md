@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13 - 2022-10-20
+
+## 💡 Enhancements 💡
+
+- Support hostnames in Istio Virtual Service in `gateway-api`
+
 ## v0.12 - 2022-10-20
 
 ## 💡 Enhancements 💡
