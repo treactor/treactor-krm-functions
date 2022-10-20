@@ -54,7 +54,7 @@ func TestIstio(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, run)
 	assert.NoError(t, fn.CheckResourceDuplication(resourceList))
-	assert.Equal(t, 2, len(resourceList.Items))
+	assert.Equal(t, 4, len(resourceList.Items))
 	assert.Equal(t, resourceList.Results[0].Message, "Added 1 backends")
 	assert.Equal(t, resourceList.Results[1].Message, "Added 6 routes")
 }

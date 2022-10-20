@@ -21,19 +21,31 @@ type Route struct {
 }
 
 type Routes struct {
+	hosts    []string
 	routes   map[string]Route
 	backends map[string]Backend
 }
 
 func New() Routes {
 	return Routes{
+		hosts:    []string{},
 		routes:   map[string]Route{},
 		backends: map[string]Backend{},
 	}
 }
 
-func (r *Routes) AddRoutes(httpRoute *fn.KubeObject) {
+func (r *Routes) AddGateway(gateway *fn.KubeObject) {
+	listeners, _, err := gateway.NestedSlice("spec", "listeners")
+	if err != nil {
+		return
+	}
+	for _, listener := range listeners {
+		hostname := listener.GetString("hostname")
+		r.hosts = append(r.hosts, hostname)
+	}
+}
 
+func (r *Routes) AddRoutes(httpRoute *fn.KubeObject) {
 	httpRules, _, err := httpRoute.NestedSlice("spec", "rules")
 	if err != nil {
 		return
@@ -112,6 +124,10 @@ func (r *Routes) RouteCount() int {
 
 func (r *Routes) BackendCount() int {
 	return len(r.backends)
+}
+
+func (r *Routes) GetHosts() []string {
+	return r.hosts
 }
 
 type byRoutePath []Route

@@ -39,6 +39,7 @@ func Run(rl *fn.ResourceList) (bool, error) {
 				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "false")
 			}
 		} else if kubeObject.IsGVK("gateway.networking.k8s.io", "v1alpha2", "Gateway") {
+			r.AddGateway(kubeObject)
 			if cfg.Output != "gateway-api" {
 				kubeObject.SetAnnotation(constants.K8sAnnLocalConfig, "true")
 			} else {

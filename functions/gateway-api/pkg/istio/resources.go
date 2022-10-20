@@ -18,7 +18,7 @@ func Create(rl *fn.ResourceList, routes routes.Routes) ([]*fn.KubeObject, error)
 	if err != nil {
 		return nil, err
 	}
-	err = r.ensureIstioGateway(rl)
+	err = r.ensureIstioGateway(rl, routes)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ spec:
 	return err
 }
 
-func (r *resources) ensureIstioGateway(rl *fn.ResourceList) error {
+func (r *resources) ensureIstioGateway(rl *fn.ResourceList, routes routes.Routes) error {
 	name := "treactor"
 	kubeObject, found := common.FindObject(rl, "networking.istio.io", "v1beta1", "Gateway", name)
 	if !found {
@@ -108,18 +108,27 @@ spec:
   selector:
     app: istio-ingress
   servers:
-    - port:
-        number: 80
-        name: http
-        protocol: HTTP
-      hosts:
-        - "*"
 `))
 		if err != nil {
 			return err
 		}
 		kubeObject.SetName(name)
 		kubeObject.SetAnnotation("config.kubernetes.io/managed-by", fnc.FnUri)
+	}
+
+	var servers []*istiov1beta1.Server
+	servers = append(servers, &istiov1beta1.Server{
+		Port: &istiov1beta1.Port{
+			Number:   80,
+			Protocol: "HTTP",
+			Name:     "http",
+		},
+		Hosts: routes.GetHosts(),
+	})
+
+	err := kubeObject.SetNestedField(&servers, "spec", "servers")
+	if err != nil {
+		return err
 	}
 	r.items = append(r.items, kubeObject)
 	return nil
